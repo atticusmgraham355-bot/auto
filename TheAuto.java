@@ -34,7 +34,18 @@ public class TheAuto extends OpMode
         final double A  = 0.002104;
         final double B  = 0.0186;
         final double kS = 0.698; // 96 mm grip wheels on FTC foam tiles
-        
+        static final double WHEEL_DIAMETER_M = 0.096; // 96 mm goBILDA wheels
+        static final double TRACK_WIDTH_M = 0.398; // ~398 mm center-to-center wheel width
+        static final double TURNING_RADIUS_M = TRACK_WIDTH_M / 2.0; // r = 0.199 m
+
+// --- MOTOR CONSTANTS (312 RPM Yellow Jacket) ---
+        static final double TICKS_PER_REV = 537.7;
+        static final double WHEEL_CIRCUMFERENCE_M = Math.PI * WHEEL_DIAMETER_M;
+        static final double TICKS_PER_METER = TICKS_PER_REV / WHEEL_CIRCUMFERENCE_M; // ~1782.88 ticks/m
+
+// --- SCRUB TUNING MULTIPLIER ---
+// Start at 1.0. If the bot turns 320 deg when commanded 360 deg, set to (360.0 / 320.0) = 1.125
+        static final double SCRUB_FACTOR = 1.0;
         // 2. Unit conversion constants (96 mm wheel, 19.2:1 motor, 537.7 ticks/rev)
         final double METERS_TO_MOTOR_RAD = 19.2 / 0.048; // Exactly 400.0 rad/m
         final double TICKS_TO_MOTOR_RAD  = (2.0 * Math.PI) / (537.7 / 19.2);
@@ -277,4 +288,29 @@ public class TheAuto extends OpMode
               rightIntakeServo.setPower(0);
               return 0;
           }
+          double degreesToTurnMeters(double degrees) {
+                double WHEEL_DIAMETER_M = 0.096; // 96 mm goBILDA wheels
+                double TRACK_WIDTH_M = 0.398; // ~398 mm center-to-center wheel width
+                double TURNING_RADIUS_M = TRACK_WIDTH_M / 2.0; // r = 0.199 m
+
+// --- MOTOR CONSTANTS (312 RPM Yellow Jacket) ---
+                double TICKS_PER_REV = 537.7;
+                double WHEEL_CIRCUMFERENCE_M = Math.PI * WHEEL_DIAMETER_M;
+                
+
+// --- SCRUB TUNING MULTIPLIER ---
+// Start at 1.0. If the bot turns 320 deg when commanded 360 deg, set to (360.0 / 320.0) = 1.125
+                double SCRUB_FACTOR = 1.0;
+                double thetaRadians = Math.toRadians(degrees);
+                double arcDistanceMeters = TURNING_RADIUS_M * thetaRadians;
+                return arcDistanceMeters * SCRUB_FACTOR;
+          }
+          int degreesToTurnTicks(double degrees) {
+                double TICKS_PER_METER = TICKS_PER_REV / WHEEL_CIRCUMFERENCE_M; // ~1782.88 ticks/m
+                double meters = degreesToTurnMeters(degrees);
+                return (int) Math.round(meters * TICKS_PER_METER);
+          }
+}
+
+}
 }
