@@ -54,7 +54,7 @@ public class TheAuto extends OpMode
         final double targetMeters    = 0.4; // Drive 1.5 meters
         final double targetVelMps    = 0.0; // m/s (0.0 if driving to a stationary point)
         final double targetAccelMps2 = 0.0; // m/s^2 (0.0 if driving to a stationary point)
-        final double targetMetersA    = 0.4; // Drive 1.5 meters
+        final double targetMetersA    = degreesToTurnMeters(180); // Drive 1.5 meters
         final double targetVelMpsA    = 0.0; // m/s (0.0 if driving to a stationary point)
         final double targetAccelMps2A = 0.0; // m/s^2 (0.0 if driving to a stationary point)
         final double VELOCITY_THRESHOLD = 1e-4; 
@@ -235,14 +235,49 @@ public class TheAuto extends OpMode
                 
             
               }
-              if(currentTime>10 && currentTime<22){
+            if(currentTime>8 && currentTime<10){
+                batteryVoltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
+                LcurrentTicks = -leftDrive.getCurrentPosition();
+               
+                RcurrentTicks = -rightDrive.getCurrentPosition();
+                deltaTicksR = RcurrentTicks - prevTicksR;
+                deltaTicksL = LcurrentTicks - prevTicksL;
+                deltaTime = currentTime - prevTime;
+                manualVelocityL = deltaTicksL / deltaTime; // Ticks per second
+                manualVelocityR = deltaTicksR / deltaTime; // Ticks per second
+    
+            // 4. Read current state from DcMotorEx encoder
+                thetaML    = LcurrentTicks * TICKS_TO_MOTOR_RAD; // rad
+                thetaDotML = (manualVelocityL)* TICKS_TO_MOTOR_RAD;        // rad/s
+                thetaMR    = RcurrentTicks * TICKS_TO_MOTOR_RAD; // rad
+                thetaDotMR = (manualVelocityR)* TICKS_TO_MOTOR_RAD;    
+                prevTicksL = LcurrentTicks;
+                prevTicksR = RcurrentTicks;
+                prevTime = currentTime;
+            // 5. Calculate error and total voltage
+                errorL    = targetThetaM - thetaML;
+                errorDotL = targetThetaDotM - thetaDotML;
+                errorR    = targetThetaM - thetaMR;
+                errorDotR = targetThetaDotM - thetaDotMR;
+                motorpowerL=drive(errorL,Kp,Kd,errorDotL,targetThetaDotM,B,batteryVoltage,A,targetThetaDDotM,kS,VELOCITY_THRESHOLD,POSITION_DEADBAND);
+                motorpowerR=drive(errorR,Kp,Kd,errorDotR,targetThetaDotM,B,batteryVoltage,A,targetThetaDDotM,kS,VELOCITY_THRESHOLD,POSITION_DEADBAND);
+                
+                telemetry.addData("Motors", "left (%.2f), right (%.2f)", motorpowerL, motorpowerR);
+            
+                
+                leftDrive.setPower(-motorpowerL);
+                rightDrive.setPower(-motorpowerR);
+            }
+            leftDrive.setPower(0);
+            rightDrive.setPower(0);
+            if(currentTime>10 && currentTime<22){
                 rightIntakeServo.setPower(1);
                 launch();
-              }
-              if(currentTime>22){
+            }
+            if(currentTime>22){
                 donothing();  
-              }
-            } 
+            }
+          } 
           @Override
           public void stop() {
           }
@@ -305,12 +340,9 @@ public class TheAuto extends OpMode
                 double arcDistanceMeters = TURNING_RADIUS_M * thetaRadians;
                 return arcDistanceMeters * SCRUB_FACTOR;
           }
-          int degreesToTurnTicks(double degrees) {
+          double degreesToTurnTicks(double degrees) {
                 double TICKS_PER_METER = TICKS_PER_REV / WHEEL_CIRCUMFERENCE_M; // ~1782.88 ticks/m
                 double meters = degreesToTurnMeters(degrees);
-                return (int) Math.round(meters * TICKS_PER_METER);
+                return  Math.round(meters * TICKS_PER_METER);
           }
-}
-
-}
-}
+        }
