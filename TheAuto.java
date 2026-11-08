@@ -203,7 +203,7 @@ public class TheAuto extends OpMode
             }
             leftDrive.setPower(0);
             rightDrive.setPower(0);
-            if(currentTime>5 && currentTime<8){
+            if(currentTime>5 && currentTime<11){
 
                 batteryVoltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
                 LcurrentTicks = -leftDrive.getCurrentPosition();
@@ -235,7 +235,7 @@ public class TheAuto extends OpMode
                 
             
               }
-            if(currentTime>8 && currentTime<10){
+            if(currentTime>11 && currentTime<19){
                 batteryVoltage = hardwareMap.voltageSensor.iterator().next().getVoltage();
                 LcurrentTicks = -leftDrive.getCurrentPosition();
                
@@ -270,7 +270,7 @@ public class TheAuto extends OpMode
             }
             leftDrive.setPower(0);
             rightDrive.setPower(0);
-            if(currentTime>10 && currentTime<22){
+            if(currentTime>19 && currentTime<22){
                 rightIntakeServo.setPower(1);
                 launch();
             }
@@ -319,7 +319,7 @@ public class TheAuto extends OpMode
               return power;
           }
           double donothing(){
-              launcher.setVelocity(0);
+              launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
               rightIntakeServo.setPower(0);
               return 0;
           }
