@@ -270,11 +270,11 @@ public class TheAuto extends OpMode
             }
             leftDrive.setPower(0);
             rightDrive.setPower(0);
-            if(currentTime>19 && currentTime<22){
+            if(currentTime>19 && currentTime<28){
                 rightIntakeServo.setPower(1);
                 launch();
             }
-            if(currentTime>22){
+            if(currentTime>28){
                 donothing();  
             }
           } 
@@ -282,8 +282,8 @@ public class TheAuto extends OpMode
           public void stop() {
           }
           void launch() {
-            
-            launcher.setVelocity(LAUNCHER_TARGET_VELOCITY);
+            rightIntakeServo.setPower(1);
+            launcher.setVelocity(LAUNCHER_TARGET_VELOCITY-67);
             if (launcher.getVelocity() > LAUNCHER_MIN_VELOCITY)
             {
                 intakePower += 0.5;
@@ -319,7 +319,7 @@ public class TheAuto extends OpMode
               return power;
           }
           double donothing(){
-              launcher.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+              launcher.setPower(0);
               rightIntakeServo.setPower(0);
               return 0;
           }
