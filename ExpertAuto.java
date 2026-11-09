@@ -18,7 +18,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 @Autonomous(name="ExpertAuto", group="StarterBot")
 //@Disabled
 public class ExpertAuto extends OpMode
-{        
+{       
+        
+        static final double WHEEL_DIAMETER_M = 0.096; // 96 mm goBILDA wheels
+        static final double TRACK_WIDTH_M = 0.398; // ~398 mm center-to-center wheel width
+        static final double TURNING_RADIUS_M = TRACK_WIDTH_M / 2.0; // r = 0.199 m
+        static final double TICKS_PER_REV = 537.7;
+        static final double WHEEL_CIRCUMFERENCE_M = Math.PI * WHEEL_DIAMETER_M;
+        static final double TICKS_PER_METER = TICKS_PER_REV / WHEEL_CIRCUMFERENCE_M; // ~1782.88 ticks/m
+
         private ElapsedTime timer= new ElapsedTime();
         public final int LAUNCHER_TARGET_VELOCITY = 1250;
         public final int LAUNCHER_MIN_VELOCITY = 1200;
@@ -29,7 +37,9 @@ public class ExpertAuto extends OpMode
         private CRServo leftIntakeServo = null;
         private CRServo rightIntakeServo = null;
         private CRServo windmillServo = null;
-
+                // 2. Unit conversion constants (96 mm wheel, 19.2:1 motor, 537.7 ticks/rev)
+        final double METERS_TO_MOTOR_RAD = 19.2 / 0.048; // Exactly 400.0 rad/m
+        final double TICKS_TO_MOTOR_RAD  = (2.0 * Math.PI) / (537.7 / 19.2);
         // 3. Example target inputs in METERS (replace with your motion profile or setpoint)
         final double targetMeters    = 0.4; // Drive 1.5 meters
         final double targetVelMps    = 0.0; // m/s (0.0 if driving to a stationary point)
@@ -53,6 +63,7 @@ public class ExpertAuto extends OpMode
         double prevTicksR=0.0;
         double prevTime=0.0;
         double power=0.0;
+        double An=0.9864506677;
   //start of moving
         
         
@@ -160,10 +171,10 @@ public class ExpertAuto extends OpMode
             double manualVelocityR = deltaTicksR / deltaTime; // Ticks per second
 
         // 4. Read current state from DcMotorEx encoder
-            double thetaML    = LcurrentTicks
-            double thetaDotML = (manualVelocityL)
-            double thetaMR    = RcurrentTicks 
-            double thetaDotMR = (manualVelocityR)   
+            double thetaML    = LcurrentTicks * TICKS_TO_MOTOR_RAD; // rad
+            double thetaDotML = (manualVelocityL)* TICKS_TO_MOTOR_RAD;        // rad/s
+            double thetaMR    = RcurrentTicks * TICKS_TO_MOTOR_RAD; // rad
+            double thetaDotMR = (manualVelocityR)* TICKS_TO_MOTOR_RAD;    
             prevTicksL = LcurrentTicks;
             prevTicksR = RcurrentTicks;
             prevTime = currentTime;
@@ -172,8 +183,10 @@ public class ExpertAuto extends OpMode
             double errorDotL = targetThetaDotM - thetaDotML;
             double errorR    = targetThetaM - thetaMR;
             double errorDotR = targetThetaDotM - thetaDotMR;
-            motorpowerL=drive(4.5,0.9864506677,errorL,errorDotL,targetThetaDotM,B,batteryVoltage,A,targetThetaDDotM,kS,VELOCITY_THRESHOLD,POSITION_DEADBAND);
-
+            motorpowerL=drive(3.2,0.9864506677,errorL,errorDotL,targetThetaDotM,2.877092314e-4,batteryVoltage,An,targetThetaDDotM,0.7,VELOCITY_THRESHOLD,POSITION_DEADBAND);
+            motorpowerR=drive(3.2,0.9864506677,errorR,errorDotR,targetThetaDotM,2.877092314e-4,batteryVoltage,An,targetThetaDDotM,0.7,VELOCITY_THRESHOLD,POSITION_DEADBAND);
+            leftDrive.setPower(-motorpowerL);
+            rightDrive.setPower(motorpowerR);
           } 
           @Override
           public void stop() {
@@ -191,8 +204,8 @@ public class ExpertAuto extends OpMode
           double calc(double n,double A){
                 return A*(n*n);
           }
-          double clacA(double nw,double Ar,double B){
-              return (2*(nw*Ar))-B
+          double clacA(double nw,double Ar){
+              return (2*(nw*Ar))-0.0002877092314;
           }
           double drive(double r,double AT,double er,double ed,double TTDM,double Bye,double bv,double As,double TTDDM,double kSp,double VT,double PD){
               double direction = 0.0;
@@ -202,16 +215,16 @@ public class ExpertAuto extends OpMode
               } else if (Math.abs(er) > PD) {
                 direction = Math.signum(er);
               }
+              double kp=calc(r,AT);
+              double kd=clacA(r,AT);
               
-              kp=calc(r,AT);
-              kd=calcA(r,AT,2.877092314e-4);
               double vFeedback    = (kp * er) + (kd * ed);
               double vFeedforward = (As * TTDDM) + (Bye * TTDM) + (kSp * direction);
               double vTotal       = vFeedback + vFeedforward;
         
         // 6. Normalize to [-1.0, 1.0] motor power using live battery voltage
               
-              double power = Math.max(-1.0, Math.min(1.0, vTotal / bv));
+              double power = Math.max(-0.5, Math.min(0.5, vTotal / bv));
         
               return power;
           }
