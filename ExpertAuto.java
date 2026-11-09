@@ -160,10 +160,10 @@ public class ExpertAuto extends OpMode
             double manualVelocityR = deltaTicksR / deltaTime; // Ticks per second
 
         // 4. Read current state from DcMotorEx encoder
-            double thetaML    = LcurrentTicks * TICKS_TO_MOTOR_RAD; // rad
-            double thetaDotML = (manualVelocityL)* TICKS_TO_MOTOR_RAD;        // rad/s
-            double thetaMR    = RcurrentTicks * TICKS_TO_MOTOR_RAD; // rad
-            double thetaDotMR = (manualVelocityR)* TICKS_TO_MOTOR_RAD;    
+            double thetaML    = LcurrentTicks
+            double thetaDotML = (manualVelocityL)
+            double thetaMR    = RcurrentTicks 
+            double thetaDotMR = (manualVelocityR)   
             prevTicksL = LcurrentTicks;
             prevTicksR = RcurrentTicks;
             prevTime = currentTime;
